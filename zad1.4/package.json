@@ -12,6 +12,10 @@
     "vite": "^5.4.1"
   },
   "dependencies": {
-    "leaflet": "^1.9.4"
+    "bootstrap": "^5.3.3",
+    "bootstrap-icons": "^1.11.3",
+    "leaflet": "^1.9.4",
+    "leaflet-control-geocoder": "^1.8.3",
+    "leaflet-routing-machine": "^3.2.12"
   }
 }

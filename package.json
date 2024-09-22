@@ -1,6 +1,0 @@
-{
-  "dependencies": {
-    "bootstrap": "^5.3.3",
-    "leaflet-routing-machine": "^3.2.12"
-  }
-}
