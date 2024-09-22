@@ -7,20 +7,24 @@ import { Chart, registerables} from 'chart.js';
 const url = 'https://api.frankfurter.app'
 let rates = []
 let dates = []
+let currencies = []
+let baseCurrency = ''
+Chart.register(...registerables);
+const ctx = document.getElementById('myChart');
+let chart;
 
 /////////////////////////////////
 // Api operations
 /////////////////////////////////
 // get possible currencies list
-let currencies = []
 const fetchCurencies = async () => {
-  fetch(`${url}/currencies`)
+  await fetch(`${url}/currencies`)
   .then(response => response.json())
   .then(data => {
     currencies = data
     mountBaseCurencySelector()
     mountCurencieslist()
-  });
+  })
 }
 
 const mountBaseCurencySelector = () => {
@@ -80,59 +84,91 @@ const mountCurencieslist = () => {
 
 const assignBaseCurrency = (value = 'PLN') => {
   document.getElementById('base-currency').innerHTML = value
-  console.log(value)
 }
 
-const getInitChart = () => {
-  fetch('https://api.frankfurter.app/2000-01-01..2024-12-31?to=PLN,EUR')
-    .then(response => response.json())
-    .then(data => {
-      // rates = Object.keys(data.rates).map(key => (console.log(key)));
-      
-      for (let x in data.rates) {
-        rates.push(data.rates[x]['PLN'])
-        dates.push(x)
-      }
-      console.log(dates)
-      console.log(rates)
-    });
-}
 
-await fetchCurencies()
-assignBaseCurrency()
-getInitChart()
+
 
 
 
 /////////////////////////////////
 // Generate charts
 /////////////////////////////////
-Chart.register(...registerables);
-const ctx = document.getElementById('myChart');
+const getInitChart = async () => {
+  const response = await fetch('https://api.frankfurter.app/1900-01-01..2024-12-31?to=PLN,EUR');
+  const data = await response.json();
 
-new Chart(ctx, {
-  type: 'line',
-  data: {
-    labels: dates,
-    datasets: [{
-      label: '# of Votes',
-      data: rates,
-      borderWidth: 1
-    }]
-  },
-  options: {
-    scales: {
-      y: {
-        beginAtZero: false
+  const promises = [];
+  for (let x in data.rates) {
+    promises.push(new Promise(resolve => {
+      rates.push(data.rates[x]['PLN']);
+      dates.push(x);
+      resolve();
+    }));
+  }
+
+  await Promise.all(promises);
+  if (rates.length > 50) {
+    document.getElementById('min-range').value = rates.length - 51
+    document.getElementById('max-range').value = rates.length - 1
+  }
+  initialieChart();
+}
+
+const initialieChart = () => {
+  chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: dates,
+      datasets: [{
+        label: `Kursy względem: ${baseCurrency }`,
+        data: rates,
+        borderWidth: 1
+      }]
+    },
+    options: {
+      scales: {
+        y: {
+          beginAtZero: false
+        }
       }
     }
-  },
-    zoom: {
-      zoom: {
-        wheel: { enabled: true },
-        pinch: { enabled: true },
-        mode: 'xy'
-      }
-    }
+  });
+};
+
+const getVals = () => {
+  const min = parseFloat(document.getElementById('min-range').value);
+  const max = parseFloat(document.getElementById('max-range').value);
+  if (min > max) {
+    [min, max] = [max, min];
+  }
+  console.log(min, max)
+
+  const label = dates.slice(min, max);
+  const value = rates.slice(min, max);
+
+  chart.data.labels = label;
+  chart.data.datasets[0].data = value;
+  chart.update();
+};
+
+const registerSliderEvents = () => {
+  const minSlider = document.getElementById('min-range');
+  const maxSlider = document.getElementById('max-range');
+
+  minSlider.max = dates.length - 1;
+  maxSlider.max = dates.length - 1;
+
+  minSlider.addEventListener('input', getVals);
+  maxSlider.addEventListener('input', getVals);
+};
+
+
+
+
+await fetchCurencies()
+assignBaseCurrency()
+await getInitChart().then(() => {
+  registerSliderEvents();
 });
-  
+  // .then(() => initialieChart())

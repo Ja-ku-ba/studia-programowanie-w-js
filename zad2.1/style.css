@@ -21,3 +21,21 @@ body {
   margin: 0;
   padding: 0;
 }
+
+.range-slider {
+  margin-top: 20px;
+}
+
+.range-slider input[type="range"] {
+  width: 100%; /* Make the sliders full width */
+}
+
+.range-slider label {
+  display: block;
+  margin-top: 10px;
+}
+
+.rangeValues {
+  margin-top: 10px;
+  font-weight: bold;
+}
