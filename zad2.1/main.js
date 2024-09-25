@@ -8,7 +8,7 @@ const url = 'https://api.frankfurter.app'
 let rates = []
 let dates = []
 let currencies = []
-let baseCurrency = ''
+let baseCurrency = 'CAD'
 Chart.register(...registerables);
 const ctx = document.getElementById('myChart');
 let chart;
@@ -87,21 +87,19 @@ const assignBaseCurrency = (value = 'PLN') => {
 }
 
 
-
-
-
-
 /////////////////////////////////
 // Generate charts
 /////////////////////////////////
 const getInitChart = async () => {
-  const response = await fetch('https://api.frankfurter.app/1900-01-01..2024-12-31?to=PLN,EUR');
+  console.log(baseCurrency)
+  // const response = await fetch(`https://api.frankfurter.app/2021-01-01..2024-12-31?from=PLN?to=${baseCurrency},PLN`);
+  const response = await fetch(`https://api.frankfurter.app/latest?from=PLN&to=${baseCurrency}`);
   const data = await response.json();
-
+  console.log(data)
   const promises = [];
   for (let x in data.rates) {
     promises.push(new Promise(resolve => {
-      rates.push(data.rates[x]['PLN']);
+      rates.push(data.rates[x][baseCurrency]);
       dates.push(x);
       resolve();
     }));
@@ -130,11 +128,19 @@ const initialieChart = () => {
       scales: {
         y: {
           beginAtZero: false
+        },
+        x: {
+          beginAtZero: false
         }
       }
     }
   });
 };
+
+const reinitializeChart = () => {
+  chart.destroy();
+  getInitChart()
+}
 
 const getVals = () => {
   const min = parseFloat(document.getElementById('min-range').value);
@@ -172,3 +178,14 @@ await getInitChart().then(() => {
   registerSliderEvents();
 });
   // .then(() => initialieChart())
+
+
+  
+/////////////////////////////////
+// Lisen Events
+/////////////////////////////////
+const baseCurrencyInput = document.getElementById('base-currency-selector').querySelector('.dropdown-menu')
+baseCurrencyInput.addEventListener('click', (event) => {
+  baseCurrency = event.target.dataset.currency
+  reinitializeChart()
+})
