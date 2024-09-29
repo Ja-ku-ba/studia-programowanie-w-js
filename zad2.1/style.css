@@ -23,23 +23,22 @@ body {
 }
 
 #myChart {
-  height: 80vh !important;
+  margin: auto;
+  width: 100%;
+  height: 100vh;
 }
 
-.range-slider {
-  margin-top: 20px;
+/* @media screen and (max-width: 1023px) {
+  #myChart {
+    height: 200vh;
+  } 
+} */
+
+#base-currency {
+  font-weight: 600;
 }
 
-.range-slider input[type="range"] {
-  width: 100%; /* Make the sliders full width */
+#base-currency-selector {
+  border-bottom: 1px solid grey;
 }
 
-.range-slider label {
-  display: block;
-  margin-top: 10px;
-}
-
-.rangeValues {
-  margin-top: 10px;
-  font-weight: bold;
-}

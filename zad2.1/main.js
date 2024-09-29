@@ -75,13 +75,13 @@ const mountCurencieslist = () => {
   for(const curency in currencies) { 
     listItems += `
       <li class="list-group-item">
-        <input class="form-check-input me-1 currencies-list-item" type="checkbox" value="" id="${curency}">
-        <label class="form-check-label stretched-link" for="${curency}">${currencies[curency]}</label>
+        <input class="form-check-input me-1 currencies-list-item" type="checkbox" ${curency==='PLN' ? 'checked' : ''} value="" id="${curency}">
+        <label class="form-check-label stretched-link" for="${curency}">${curency} / ${currencies[curency]}</label>
       </li>    
     `
     }
     let list = `
-    <p>Wybierz waluty odniesiena</p>
+    <p id="curemcies-list-descriptior" class="pt-3">Wybierz waluty odniesiena</p>
     <ul class="list-group">
       ${listItems}
     </ul>
@@ -89,9 +89,9 @@ const mountCurencieslist = () => {
     document.getElementById("currencies-list").innerHTML = list
 }
 
-// const assignBaseCurrency = (value = 'PLN') => {
-//   document.getElementById('base-currency').innerHTML = value
-// }
+const assignBaseCurrency = (value = 'PLN') => {
+  document.getElementById('base-currency').innerHTML = `Kursy względem: ${value}`
+}
 
 
 /////////////////////////////////
@@ -169,7 +169,9 @@ const initialieChart = (charts, dates) => {
         x: {
           beginAtZero: false
         }
-      }
+      },
+      responsive: true,
+      maintainAspectRatio: true,
     }
   })
 }
@@ -179,7 +181,7 @@ const reinitializeChart = () => {
 }
 
 await fetchCurencies()
-// assignBaseCurrency()
+assignBaseCurrency(baseCurrency)
 await getInitChart()
 
 
