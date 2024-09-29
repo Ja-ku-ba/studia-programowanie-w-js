@@ -22,6 +22,10 @@ body {
   padding: 0;
 }
 
+#myChart {
+  height: 80vh !important;
+}
+
 .range-slider {
   margin-top: 20px;
 }

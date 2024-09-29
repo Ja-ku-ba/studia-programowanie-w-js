@@ -1,22 +1,21 @@
 import './style.css'
 import './node_modules/bootstrap/dist/css/bootstrap.min.css'
-import 'bootstrap/dist/js/bootstrap.bundle.min.js';
-import { Chart, registerables} from 'chart.js';
+import 'bootstrap/dist/js/bootstrap.bundle.min.js'
+import { Chart, registerables} from 'chart.js'
 
 // define variables
 const url = 'https://api.frankfurter.app'
-let rates = []
-let dates = []
 let currencies = []
-let baseCurrency = 'CAD'
-Chart.register(...registerables);
-const ctx = document.getElementById('myChart');
-let chart;
+let baseCurrency = 'EUR'
+let slectedCurrencies = ['PLN']  
+
+Chart.register(...registerables)
+const ctx = document.getElementById('myChart')
+let chart
 
 /////////////////////////////////
 // Api operations
 /////////////////////////////////
-// get possible currencies list
 const fetchCurencies = async () => {
   await fetch(`${url}/currencies`)
   .then(response => response.json())
@@ -27,6 +26,16 @@ const fetchCurencies = async () => {
   })
 }
 
+const getRates = async () => {
+  const today = (new Date).toISOString().slice(0, 10)
+  const response = await fetch(`https://api.frankfurter.app/2020-01-01..${today}?from=${baseCurrency}`)
+  const data = await response.json()
+  return data
+}
+
+/////////////////////////////////
+// Mount htmls
+/////////////////////////////////
 const mountBaseCurencySelector = () => {
   let listItems = ''
   for(const curency in currencies) { 
@@ -49,18 +58,16 @@ const mountBaseCurencySelector = () => {
       </ul>
     </div>
   `
-  let dropdownMenu = document.getElementById("base-currency-selector");
+  let dropdownMenu = document.getElementById("base-currency-selector")
   dropdownMenu.innerHTML = list
 
-  const buttons = dropdownMenu.querySelectorAll('.dropdown-item');
+  const buttons = dropdownMenu.querySelectorAll('.dropdown-item')
   buttons.forEach((button) => {
     button.addEventListener('click', (event) => {
-      assignBaseCurrency(event.target.getAttribute('data-currency'));
-    });
-  });
+      assignBaseCurrency(event.target.getAttribute('data-currency'))
+    })
+  })
 }
-
-
 
 // get curencies, and create html
 const mountCurencieslist = () => {
@@ -68,8 +75,8 @@ const mountCurencieslist = () => {
   for(const curency in currencies) { 
     listItems += `
       <li class="list-group-item">
-        <input class="form-check-input me-1" type="checkbox" value="" id="${currencies[curency]}">
-        <label class="form-check-label stretched-link" for="${currencies[curency]}">${curency}</label>
+        <input class="form-check-input me-1 currencies-list-item" type="checkbox" value="" id="${curency}">
+        <label class="form-check-label stretched-link" for="${curency}">${currencies[curency]}</label>
       </li>    
     `
     }
@@ -82,47 +89,77 @@ const mountCurencieslist = () => {
     document.getElementById("currencies-list").innerHTML = list
 }
 
-const assignBaseCurrency = (value = 'PLN') => {
-  document.getElementById('base-currency').innerHTML = value
-}
+// const assignBaseCurrency = (value = 'PLN') => {
+//   document.getElementById('base-currency').innerHTML = value
+// }
 
 
 /////////////////////////////////
 // Generate charts
 /////////////////////////////////
 const getInitChart = async () => {
-  console.log(baseCurrency)
-  // const response = await fetch(`https://api.frankfurter.app/2021-01-01..2024-12-31?from=PLN?to=${baseCurrency},PLN`);
-  const response = await fetch(`https://api.frankfurter.app/latest?from=PLN&to=${baseCurrency}`);
-  const data = await response.json();
-  console.log(data)
-  const promises = [];
-  for (let x in data.rates) {
-    promises.push(new Promise(resolve => {
-      rates.push(data.rates[x][baseCurrency]);
-      dates.push(x);
-      resolve();
-    }));
-  }
+  let data = await getRates()
+  const dates = []
+  const charts = []
+  const promises = []
 
-  await Promise.all(promises);
-  if (rates.length > 50) {
-    document.getElementById('min-range').value = rates.length - 51
-    document.getElementById('max-range').value = rates.length - 1
-  }
-  initialieChart();
+  slectedCurrencies.forEach((currency) => {
+    const rates = []
+
+    if (currency ===  baseCurrency) { 
+      Object.keys(data.rates).forEach((date) => {
+        promises.push(
+          new Promise((resolve) => {
+            rates.push(1)
+            dates.push(date)
+            resolve()
+          })
+        )
+      })
+    }
+
+    if (dates.length === 0) {
+      Object.keys(data.rates).forEach((date) => {
+        promises.push(
+          new Promise((resolve) => {
+            rates.push(data.rates[date][currency])
+            dates.push(date)
+            resolve()
+          })
+        )
+      })
+    } else {
+      Object.keys(data.rates).forEach((date) => {
+        promises.push(
+          new Promise((resolve) => {
+            rates.push(data.rates[date][currency])
+            resolve()
+          })
+        )
+      })
+    }
+
+    promises.push(
+      Promise.all(promises).then(() => {
+        charts.push({
+          label: `${currency}`,
+          data: rates,
+          type: 'line',
+        })
+      })
+    )
+  })
+
+  await Promise.all(promises)
+  initialieChart(charts, dates)
 }
 
-const initialieChart = () => {
+const initialieChart = (charts, dates) => {
   chart = new Chart(ctx, {
     type: 'line',
     data: {
       labels: dates,
-      datasets: [{
-        label: `Kursy względem: ${baseCurrency }`,
-        data: rates,
-        borderWidth: 1
-      }]
+      datasets: charts
     },
     options: {
       scales: {
@@ -134,50 +171,16 @@ const initialieChart = () => {
         }
       }
     }
-  });
-};
-
+  })
+}
 const reinitializeChart = () => {
-  chart.destroy();
+  chart.destroy()
   getInitChart()
 }
 
-const getVals = () => {
-  const min = parseFloat(document.getElementById('min-range').value);
-  const max = parseFloat(document.getElementById('max-range').value);
-  if (min > max) {
-    [min, max] = [max, min];
-  }
-  console.log(min, max)
-
-  const label = dates.slice(min, max);
-  const value = rates.slice(min, max);
-
-  chart.data.labels = label;
-  chart.data.datasets[0].data = value;
-  chart.update();
-};
-
-const registerSliderEvents = () => {
-  const minSlider = document.getElementById('min-range');
-  const maxSlider = document.getElementById('max-range');
-
-  minSlider.max = dates.length - 1;
-  maxSlider.max = dates.length - 1;
-
-  minSlider.addEventListener('input', getVals);
-  maxSlider.addEventListener('input', getVals);
-};
-
-
-
-
 await fetchCurencies()
-assignBaseCurrency()
-await getInitChart().then(() => {
-  registerSliderEvents();
-});
-  // .then(() => initialieChart())
+// assignBaseCurrency()
+await getInitChart()
 
 
   
@@ -188,4 +191,16 @@ const baseCurrencyInput = document.getElementById('base-currency-selector').quer
 baseCurrencyInput.addEventListener('click', (event) => {
   baseCurrency = event.target.dataset.currency
   reinitializeChart()
+})
+
+const curenciesCheckboxes = document.querySelectorAll('.currencies-list-item')
+curenciesCheckboxes.forEach((checkbox) => {
+  checkbox.addEventListener('click', (event) => {
+    if (event.target.checked) {
+      slectedCurrencies.push(event.target.id)
+    } else {
+      slectedCurrencies = slectedCurrencies.filter((x) => x !== event.target.id)
+    }
+    reinitializeChart()
+  })
 })
