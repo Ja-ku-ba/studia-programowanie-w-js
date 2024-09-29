@@ -1,16 +1,26 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite App</title>
-  </head>
-  <body>
-    <main id="app">
-      <div id="map"></div>
-      <div id="details"></div>
-    </main>
-    <script type="module" src="/main.js"></script>
-  </body>
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa z formularzem</title>
+    <link rel="stylesheet" href="./src/style.css" />
+</head>
+<body>
+
+<div id="map"></div>
+<div id="form-container" style="display: none;">
+    <h3>Szczegóły miejsca</h3>
+    <label for="name">Nazwa:</label>
+    <input type="text" id="name" />
+
+    <label for="description">Opis:</label>
+    <textarea id="description" placeholder="Wprowadź opis"></textarea>
+
+    <label for="coordinates">Współrzędne:</label>
+    <input type="text" id="coordinates" disabled />
+</div>
+
+<script type="module" src="./src/main.js"></script>
+</body>
 </html>

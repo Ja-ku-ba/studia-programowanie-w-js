@@ -7,4 +7,4 @@
 ![Zdjecie telefon](../readmeFiles/mobile.png)
 
 2. Podgląd na desktopie
-![Zdjecie desktop](../readmeFiles/mobile.png)
+![Zdjecie desktop](../readmeFiles/desktop.png)
